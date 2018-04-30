@@ -17,7 +17,26 @@
     ],
     "main": "./out/extension",
     "contributes": {
-        "commands": []
+        "languages": [{
+            "id": "swift",
+            "extensions": [".swift"]
+        }],
+        "configuration": {
+            "type": "object",
+            "title": "Schwifty Configuration",
+            "properties": {
+                "schwifty.sourceKittenPath": {
+                    "type": "string",
+                    "default": "sourcekitten",
+                    "description": "The path to the SourceKitten binary."
+                },
+                "schwifty.formatOnSave": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Format your swift code automatically on save."
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

@@ -7,10 +7,13 @@ use of [SourceKitten][1].
 
 ## Features
 
-These are the current features that Schwifty offers:
+These are the current features that Schwifty currently offers:
+
+- Code formatting
+
+Features currently in progress:
 
 - Code completion
-- Code formatting
 
 ## Prerequisites
 

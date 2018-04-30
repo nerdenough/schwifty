@@ -8,10 +8,13 @@
         "vscode": "^1.22.0"
     },
     "categories": [
+        "Languages",
+        "Formatters",
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "onCommand:extension.sayHello",
+        "onLanguage:swift"
     ],
     "main": "./out/extension",
     "contributes": {

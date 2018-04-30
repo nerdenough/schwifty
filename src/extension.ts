@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 
 // Formats a specified file
-function format(sourceKittenPath: string, fileName: string) {
+function format(sourceKittenPath: any, fileName: string) {
     spawn(sourceKittenPath, ['format', '--file', fileName])
         .on('data', (data: any) => console.log(data))
         .on('error', (err: any) => {
@@ -12,13 +12,14 @@ function format(sourceKittenPath: string, fileName: string) {
         });
 }
 
-export function activate(context: vscode.ExtensionContext) {
-    const config = vscode.workspace.getConfiguration('schwifty');
-    const sourceKittenPath: string = config.get('sourceKittenPath') || 'sourcekitten';
+function getConfig(key: string) {
+    return vscode.workspace.getConfiguration('schwifty').get(key)
+}
 
+export function activate(context: vscode.ExtensionContext) {
     const formatter = vscode.languages.registerDocumentFormattingEditProvider({ language: 'swift' }, {
         provideDocumentFormattingEdits(document: vscode.TextDocument): any {
-            format(sourceKittenPath, document.fileName);
+            format(getConfig('sourceKittenPath'), document.fileName);
         }
     })
 

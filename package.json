@@ -17,10 +17,14 @@
     ],
     "main": "./out/extension",
     "contributes": {
-        "languages": [{
-            "id": "swift",
-            "extensions": [".swift"]
-        }],
+        "languages": [
+            {
+                "id": "swift",
+                "extensions": [
+                    ".swift"
+                ]
+            }
+        ],
         "configuration": {
             "type": "object",
             "title": "Schwifty Configuration",
@@ -29,11 +33,6 @@
                     "type": "string",
                     "default": "sourcekitten",
                     "description": "The path to the SourceKitten binary."
-                },
-                "schwifty.formatOnSave": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Format your swift code automatically on save."
                 }
             }
         }

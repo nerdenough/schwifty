@@ -17,6 +17,10 @@ Features currently in progress:
 
 ## Prerequisites
 
+### Swift
+
+TODO
+
 ### SourceKitten
 
 In order to use Schwifty, you need to have [SourceKitten][1] installed. The easiest way to install
@@ -28,6 +32,10 @@ brew install sourcekitten
 
 For other ways to install SourceKitten on macOS and Linux, take a look at the [SourceKitten][1]
 readme.
+
+### SwiftLint
+
+TODO
 
 [1]: https://github.com/jpsim/SourceKitten
 [2]: https://brew.sh

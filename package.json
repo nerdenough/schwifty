@@ -15,7 +15,7 @@
     "activationEvents": [
         "onLanguage:swift"
     ],
-    "main": "./out/extension",
+    "main": "./out/swiftMain",
     "contributes": {
         "languages": [
             {
@@ -35,7 +35,19 @@
                     "description": "The path to the SourceKitten binary."
                 }
             }
-        }
+        },
+        "configurationDefaults": {
+            "[swift]": {
+                "editor.insertSpaces": true,
+                "editor.tabSize": 4,
+                "editor.formatOnSave": true
+            }
+        },
+        "commands": [{
+            "command": "swift.lint.package",
+            "title": "Scwifty: Lint Current Package",
+            "description": "Run linter on the current file."
+        }]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

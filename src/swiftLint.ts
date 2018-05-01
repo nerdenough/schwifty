@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import { ICheckResult, handleDiagnosticErrors } from './util';
 
 let tokenSource = new vscode.CancellationTokenSource();
 let running = false;
@@ -18,7 +19,8 @@ export function lintCode(lintWorkspace?: boolean) {
     }
 
     swiftLint(editor.document)
-        .then((data: any) => {
+        .then((results: ICheckResult[]) => {
+            handleDiagnosticErrors(editor.document, results, vscode.DiagnosticSeverity.Warning);
             running = false;
         })
         .catch((err: Error) => {
@@ -27,7 +29,7 @@ export function lintCode(lintWorkspace?: boolean) {
         });
 }
 
-export function swiftLint(document: vscode.TextDocument): any {
+export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]> {
     if (running) {
         tokenSource.cancel();
     }
@@ -42,24 +44,25 @@ export function swiftLint(document: vscode.TextDocument): any {
         const child = spawn(command, args);
 
         child.stdout.on('data', (data: any) => {
-            const items = data
+            const items: ICheckResult[] = data
                 .toString('utf-8')
                 .split('\n')
-                .filter((line: String) => line !== '')
-                .map((line: String) => {
-                    const arr = line.split(':');
-                    const item = {
-                        path: arr[0],
-                        line: arr[1],
-                        column: arr[2],
-                        type: arr[3].trim(),
-                        message: arr[4].trim(),
-                        description: arr[5].trim()
-                    };
+                .filter((text: string) => text !== '')
+                .map((text: string) => {
+                    const regex = /(.*):(\d+):(\d+): (\w+): (.*)/;
+                    let match = regex.exec(text);
 
-                    return item;
+                    if (!match) {
+                        // TODO: Handle
+                        return;
+                    }
+
+                    let [, file, lineStr, colStr, severity, msg] = match;
+                    let line = +lineStr;
+                    let col = +colStr;
+
+                    return { file, line, col, severity, msg };
                 });
-            console.log('items', items);
 
             return resolve(items);
         });

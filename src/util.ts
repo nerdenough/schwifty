@@ -31,19 +31,65 @@ export function handleDiagnosticErrors(document: vscode.TextDocument, errors: IC
         let range = new vscode.Range(error.line - 1, 0, error.line - 1, document.lineAt(error.line - 1).range.end.character + 1);
         let text = document.getText(range);
 
-        // TODO: Find columns
+        let startColumn = 1;
+        let endColumn = 0;
 
-        let diagnostic = new vscode.Diagnostic(range, error.msg, vscode.DiagnosticSeverity.Warning);
+        let [, leading, trailing]: any = /^(\s*).*(\s*)$/.exec(text);
+        if (!error.col) {
+            startColumn = leading.length;
+        } else {
+            startColumn = error.col - 1; // range is 0-indexed
+        }
+        endColumn = text.length - trailing.length;
+
+        const severity = mapSeverityToVSCodeSeverity(error.severity);
+        let diagnostic = new vscode.Diagnostic(range, error.msg, severity);
         let diagnostics: any = diagnosticMap.get(error.file);
         if (!diagnostics) {
             diagnostics = new Map<vscode.DiagnosticSeverity, vscode.Diagnostic[]>();
         }
-        if (!diagnostics[error.severity]) {
-            diagnostics[error.severity] = [];
+        if (!diagnostics[severity]) {
+            diagnostics[severity] = [];
         }
-        diagnostics[error.severity].push(diagnostic);
+        diagnostics[severity].push(diagnostic);
         diagnosticMap.set(error.file, diagnostics);
     });
 
-    // TODO: iterate diagnostic map
+    diagnosticMap.forEach((diagMap: any, file) => {
+        const fileUri = file === '<nopath>' ? document.uri : vscode.Uri.parse(file);
+
+        if (diagnosticSeverity === undefined || diagnosticSeverity === vscode.DiagnosticSeverity.Error) {
+            const newErrors = diagMap[vscode.DiagnosticSeverity.Error];
+            let existingWarnings = warningDiagnosticCollection.get(fileUri);
+            errorDiagnosticCollection.set(fileUri, newErrors);
+
+            // Don't diplay warnings if they coincide with an error
+            if (newErrors && existingWarnings) {
+                const errorLines = newErrors.map((x: vscode.Diagnostic) => x.range.start.line);
+                existingWarnings = existingWarnings.filter((x: vscode.Diagnostic) => errorLines.indexOf(x.range.start.line) === -1);
+                warningDiagnosticCollection.set(fileUri, existingWarnings);
+            }
+        }
+
+        if (diagnosticSeverity === undefined || diagnosticSeverity === vscode.DiagnosticSeverity.Warning) {
+            const existingErrors = errorDiagnosticCollection.get(fileUri);
+            let newWarnings = diagMap[vscode.DiagnosticSeverity.Warning];
+
+            // Ignore warnings that coincide with errors
+            if (existingErrors && newWarnings) {
+                const errorLines = existingErrors.map((x: vscode.Diagnostic) => x.range.start.line);
+                newWarnings = newWarnings.filter((x: vscode.Diagnostic) => errorLines.indexOf(x.range.start.line) === -1);
+            }
+
+            warningDiagnosticCollection.set(fileUri, newWarnings);
+        }
+    });
+}
+
+function mapSeverityToVSCodeSeverity(sev: string): vscode.DiagnosticSeverity {
+    switch (sev) {
+        case 'error': return vscode.DiagnosticSeverity.Error;
+        case 'warning': return vscode.DiagnosticSeverity.Warning;
+        default: return vscode.DiagnosticSeverity.Error;
+    }
 }

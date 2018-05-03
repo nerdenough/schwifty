@@ -5,6 +5,7 @@ import { SwiftDocumentFormattingEditProvider } from './swiftFormat';
 import { lintCode } from './swiftLint';
 import { autoFix } from './swiftFix';
 import { SWIFT_MODE } from './swiftMode';
+import { getConfig } from './util';
 
 export let errorDiagnosticCollection: vscode.DiagnosticCollection;
 export let warningDiagnosticCollection: vscode.DiagnosticCollection;
@@ -26,6 +27,20 @@ export function activate(ctx: vscode.ExtensionContext) {
     ctx.subscriptions.push(errorDiagnosticCollection);
     warningDiagnosticCollection = vscode.languages.createDiagnosticCollection('swift-warning');
     ctx.subscriptions.push(warningDiagnosticCollection);
+
+    ctx.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => {
+        if (document.languageId !== 'swift' || !getConfig('autoFixOnSave')) {
+            return;
+        }
+
+        errorDiagnosticCollection.clear();
+        warningDiagnosticCollection.clear();
+
+        const fileName = document.fileName;
+
+        autoFix(fileName);
+        lintCode();
+    }));
 }
 
 export function deactivate() {

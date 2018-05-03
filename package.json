@@ -39,7 +39,7 @@
                     "default": "swiftlint",
                     "description": "The path to the SwiftLint binary."
                 },
-                "swift.lint.autoFixOnSave": {
+                "swift.autoFixOnSave": {
                     "type": "boolean",
                     "default": false,
                     "description": "Fix all auto-fixable problems save."

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import { outputChannel, diagnosticsStatusBarItem } from './swiftStatus';
 import { ICheckResult, handleDiagnosticErrors } from './util';
 
 let tokenSource = new vscode.CancellationTokenSource();
@@ -18,14 +19,19 @@ export function lintCode(lintWorkspace?: boolean) {
         return;
     }
 
+    outputChannel.clear();
+    diagnosticsStatusBarItem.show();
+    diagnosticsStatusBarItem.text = 'Linting...';
+
     swiftLint(editor.document)
-        .then((results: ICheckResult[]) => {
-            handleDiagnosticErrors(editor.document, results);
+        .then((warnings: ICheckResult[]) => {
+            handleDiagnosticErrors(editor.document, warnings);
+            diagnosticsStatusBarItem.hide();
             running = false;
         })
         .catch((err: Error) => {
-            console.error(err);
-            vscode.window.showErrorMessage(err.message);
+            vscode.window.showErrorMessage(`Error: ${err.message}`);
+            diagnosticsStatusBarItem.text = 'Linting Failed';
         });
 }
 
@@ -57,9 +63,10 @@ export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]
                         return;
                     }
 
-                    let [, file, lineStr, colStr, severity,, msg] = match;
+                    let [, file, lineStr, colStr,,, msg] = match;
                     let line = +lineStr;
                     let col = +colStr;
+                    const severity = vscode.DiagnosticSeverity.Warning;
 
                     return { file, line, col, severity, msg };
                 });

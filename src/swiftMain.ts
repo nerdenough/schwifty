@@ -5,7 +5,8 @@ import { SwiftDocumentFormattingEditProvider } from './swiftFormat';
 import { lintCode } from './swiftLint';
 import { autoFix } from './swiftFix';
 import { SWIFT_MODE } from './swiftMode';
-import { getConfig } from './util';
+import { getConfig, handleDiagnosticErrors } from './util';
+import { check } from './swiftCheck';
 
 export let errorDiagnosticCollection: vscode.DiagnosticCollection;
 export let warningDiagnosticCollection: vscode.DiagnosticCollection;
@@ -29,19 +30,26 @@ export function activate(ctx: vscode.ExtensionContext) {
     ctx.subscriptions.push(warningDiagnosticCollection);
 
     ctx.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => {
-        if (document.languageId !== 'swift' || !getConfig('autoFixOnSave')) {
-            return;
-        }
-
-        errorDiagnosticCollection.clear();
-        warningDiagnosticCollection.clear();
-
-        const fileName = document.fileName;
-
-        autoFix(fileName);
-        lintCode();
+        runBuilds(document, vscode.workspace.getConfiguration());
     }));
 }
 
-export function deactivate() {
+function runBuilds(document: vscode.TextDocument, swiftConfig: vscode.WorkspaceConfiguration) {
+    if (document.languageId !== 'swift') {
+        return;
+    }
+
+    errorDiagnosticCollection.clear();
+    warningDiagnosticCollection.clear();
+
+    const fileName = document.fileName;
+    check(fileName, swiftConfig)
+        .then(res => {
+            console.log('RES', res);
+            handleDiagnosticErrors(document, res);
+            if (getConfig('autoFixOnSave')) {
+                autoFix(fileName);
+            }
+            lintCode();
+        });
 }

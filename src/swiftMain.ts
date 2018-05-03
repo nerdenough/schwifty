@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { SwiftCompletionItemProvider } from './swiftComplete';
 import { SwiftDocumentFormattingEditProvider } from './swiftFormat';
 import { lintCode } from './swiftLint';
+import { autoFix } from './swiftFix';
 import { SWIFT_MODE } from './swiftMode';
 
 export let errorDiagnosticCollection: vscode.DiagnosticCollection;
@@ -12,6 +13,14 @@ export function activate(ctx: vscode.ExtensionContext) {
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(SWIFT_MODE, new SwiftCompletionItemProvider(), '.'));
     ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(SWIFT_MODE, new SwiftDocumentFormattingEditProvider()));
     ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.file', lintCode));
+    ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.autoFix', ()  => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return;
+        }
+        const fileName = editor.document.fileName;
+        autoFix(fileName);
+    }));
 
     errorDiagnosticCollection = vscode.languages.createDiagnosticCollection('swift-error');
     ctx.subscriptions.push(errorDiagnosticCollection);

@@ -38,6 +38,11 @@
                     "type": "string",
                     "default": "swiftlint",
                     "description": "The path to the SwiftLint binary."
+                },
+                "swift.lint.autoFixOnSave": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Fix all auto-fixable problems save."
                 }
             }
         },
@@ -52,6 +57,10 @@
             "command": "swift.lint.file",
             "title": "Swift: Lint Current File",
             "description": "Run linter on the current file."
+        }, {
+            "command": "swift.lint.autoFix",
+            "title": "Swift: Fix all auto-fixable problems",
+            "description": "Fix all auto-fixable problems"
         }]
     },
     "scripts": {

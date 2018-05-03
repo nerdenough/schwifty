@@ -49,7 +49,6 @@ export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]
                 .split('\n')
                 .filter((text: string) => text !== '')
                 .map((text: string) => {
-                    console.log(text);
                     const regex = /(.*):(\d+):(\d+): (\w+): (.+?): (.*)/;
                     let match = regex.exec(text);
 

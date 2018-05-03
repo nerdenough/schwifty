@@ -11,7 +11,7 @@ export interface ICheckResult {
 }
 
 export function getConfig(key: string): any {
-    return vscode.workspace.getConfiguration('schwifty').get(key);
+    return vscode.workspace.getConfiguration('swift').get(key);
 }
 
 export function handleDiagnosticErrors(document: vscode.TextDocument, errors: ICheckResult[], diagnosticSeverity?: vscode.DiagnosticSeverity) {
@@ -29,18 +29,18 @@ export function handleDiagnosticErrors(document: vscode.TextDocument, errors: IC
         // is the correct file.
 
         let range = new vscode.Range(error.line - 1, 0, error.line - 1, document.lineAt(error.line - 1).range.end.character + 1);
-        let text = document.getText(range);
+        // let text = document.getText(range);
 
-        let startColumn = 1;
-        let endColumn = 0;
+        // let startColumn = 1;
+        // let endColumn = 0;
 
-        let [, leading, trailing]: any = /^(\s*).*(\s*)$/.exec(text);
-        if (!error.col) {
-            startColumn = leading.length;
-        } else {
-            startColumn = error.col - 1; // range is 0-indexed
-        }
-        endColumn = text.length - trailing.length;
+        // let [, leading, trailing]: any = /^(\s*).*(\s*)$/.exec(text);
+        // if (!error.col) {
+        //     startColumn = leading.length;
+        // } else {
+        //     startColumn = error.col - 1; // range is 0-indexed
+        // }
+        // endColumn = text.length - trailing.length;
 
         const severity = mapSeverityToVSCodeSeverity(error.severity);
         let diagnostic = new vscode.Diagnostic(range, error.msg, severity);

@@ -11,7 +11,7 @@ export let warningDiagnosticCollection: vscode.DiagnosticCollection;
 export function activate(ctx: vscode.ExtensionContext) {
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(SWIFT_MODE, new SwiftCompletionItemProvider(), '.'));
     ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(SWIFT_MODE, new SwiftDocumentFormattingEditProvider()));
-    ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.package', lintCode));
+    ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.file', lintCode));
 
     errorDiagnosticCollection = vscode.languages.createDiagnosticCollection('swift-error');
     ctx.subscriptions.push(errorDiagnosticCollection);

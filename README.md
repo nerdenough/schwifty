@@ -10,7 +10,7 @@ use of [SourceKitten][1] and [SwiftLint][2].
 These are the current features that Schwifty currently offers:
 
 - Code formatting
-- Linting
+- Style linting via SwiftLint
 
 Features currently in progress:
 

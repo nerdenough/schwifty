@@ -20,7 +20,7 @@ export function lintCode(lintWorkspace?: boolean) {
 
     swiftLint(editor.document)
         .then((results: ICheckResult[]) => {
-            handleDiagnosticErrors(editor.document, results, vscode.DiagnosticSeverity.Warning);
+            handleDiagnosticErrors(editor.document, results);
             running = false;
         })
         .catch((err: Error) => {
@@ -49,7 +49,8 @@ export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]
                 .split('\n')
                 .filter((text: string) => text !== '')
                 .map((text: string) => {
-                    const regex = /(.*):(\d+):(\d+): (\w+): (.*)/;
+                    console.log(text);
+                    const regex = /(.*):(\d+):(\d+): (\w+): (.+?): (.*)/;
                     let match = regex.exec(text);
 
                     if (!match) {
@@ -57,7 +58,7 @@ export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]
                         return;
                     }
 
-                    let [, file, lineStr, colStr, severity, msg] = match;
+                    let [, file, lineStr, colStr, severity,, msg] = match;
                     let line = +lineStr;
                     let col = +colStr;
 

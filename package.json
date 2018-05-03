@@ -29,10 +29,15 @@
             "type": "object",
             "title": "Schwifty Configuration",
             "properties": {
-                "schwifty.sourceKittenPath": {
+                "swift.sourceKittenPath": {
                     "type": "string",
                     "default": "sourcekitten",
                     "description": "The path to the SourceKitten binary."
+                },
+                "swift.swiftLintPath": {
+                    "type": "string",
+                    "default": "swiftlint",
+                    "description": "The path to the SwiftLint binary."
                 }
             }
         },
@@ -44,8 +49,8 @@
             }
         },
         "commands": [{
-            "command": "swift.lint.package",
-            "title": "Scwifty: Lint Current Package",
+            "command": "swift.lint.file",
+            "title": "Swift: Lint Current File",
             "description": "Run linter on the current file."
         }]
     },

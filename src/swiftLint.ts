@@ -66,7 +66,7 @@ export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]
                     let [, file, lineStr, colStr,,, msg] = match;
                     let line = +lineStr;
                     let col = +colStr;
-                    const severity = vscode.DiagnosticSeverity.Warning;
+                    const severity = 'warning';
 
                     return { file, line, col, severity, msg };
                 });

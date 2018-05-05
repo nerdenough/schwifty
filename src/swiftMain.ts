@@ -5,7 +5,7 @@ import { SwiftDocumentFormattingEditProvider } from './swiftFormat';
 import { runLint, lint } from './swiftLint';
 import { autoFix } from './swiftFix';
 import { SWIFT_MODE } from './swiftMode';
-import { getConfig, handleDiagnosticErrors, ICheckResult } from './util';
+import { handleDiagnosticErrors, ICheckResult } from './util';
 import { check } from './swiftCheck';
 
 export let errorDiagnosticCollection: vscode.DiagnosticCollection;

@@ -2,10 +2,10 @@
 import * as vscode from 'vscode';
 import { SwiftCompletionItemProvider } from './swiftComplete';
 import { SwiftDocumentFormattingEditProvider } from './swiftFormat';
-import { lintCode } from './swiftLint';
+import { runLint, lint } from './swiftLint';
 import { autoFix } from './swiftFix';
 import { SWIFT_MODE } from './swiftMode';
-import { getConfig, handleDiagnosticErrors } from './util';
+import { getConfig, handleDiagnosticErrors, ICheckResult } from './util';
 import { check } from './swiftCheck';
 
 export let errorDiagnosticCollection: vscode.DiagnosticCollection;
@@ -14,7 +14,7 @@ export let warningDiagnosticCollection: vscode.DiagnosticCollection;
 export function activate(ctx: vscode.ExtensionContext) {
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(SWIFT_MODE, new SwiftCompletionItemProvider(), '.'));
     ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(SWIFT_MODE, new SwiftDocumentFormattingEditProvider()));
-    ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.file', lintCode));
+    ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.file', runLint));
     ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.autoFix', ()  => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
@@ -34,7 +34,7 @@ export function activate(ctx: vscode.ExtensionContext) {
     }));
 }
 
-function runBuilds(document: vscode.TextDocument, swiftConfig: vscode.WorkspaceConfiguration) {
+async function runBuilds(document: vscode.TextDocument, swiftConfig: vscode.WorkspaceConfiguration) {
     if (document.languageId !== 'swift') {
         return;
     }
@@ -43,13 +43,8 @@ function runBuilds(document: vscode.TextDocument, swiftConfig: vscode.WorkspaceC
     warningDiagnosticCollection.clear();
 
     const fileName = document.fileName;
-    check(fileName, swiftConfig)
-        .then(res => {
-            console.log('RES', res);
-            handleDiagnosticErrors(document, res);
-            if (getConfig('autoFixOnSave')) {
-                autoFix(fileName);
-            }
-            lintCode();
-        });
+    await autoFix(fileName);
+    const lintResults: ICheckResult[] = await lint(document);
+    const checkResults: ICheckResult[] = await check(document.fileName, swiftConfig);
+    handleDiagnosticErrors(document, [...lintResults, ...checkResults]);
 }

@@ -6,36 +6,25 @@ import { ICheckResult, handleDiagnosticErrors } from './util';
 let tokenSource = new vscode.CancellationTokenSource();
 let running = false;
 
-export function lintCode(lintWorkspace?: boolean) {
-    const editor = vscode.window.activeTextEditor;
+function extractErrors(data: Buffer): ICheckResult[] {
+    return data
+        .toString('utf-8')
+        .split('\n')
+        .map((line: string) => /(.*):(\d+):(\d+): (\w+): (.+?): (.*)/.exec(line))
+        .filter((match: any) => match !== null)
+        .map((match: any) => {
+            let [, file, lineStr, colStr, , , msg] = match;
+            let line = +lineStr;
+            let col = +colStr;
 
-    if (!editor) {
-        vscode.window.showInformationMessage('No editor is active, cannot find current package to lint');
-        return;
-    }
+            // SwiftLint style errors should just be treated as warnings
+            const severity = 'warning';
 
-    if (editor.document.languageId !== 'swift' && !lintWorkspace) {
-        vscode.window.showInformationMessage('File in the active editor is not a Swift file, cannot find current package to lint');
-        return;
-    }
-
-    outputChannel.clear();
-    diagnosticsStatusBarItem.show();
-    diagnosticsStatusBarItem.text = 'Linting...';
-
-    swiftLint(editor.document)
-        .then((warnings: ICheckResult[]) => {
-            handleDiagnosticErrors(editor.document, warnings);
-            diagnosticsStatusBarItem.hide();
-            running = false;
-        })
-        .catch((err: Error) => {
-            vscode.window.showErrorMessage(`Error: ${err.message}`);
-            diagnosticsStatusBarItem.text = 'Linting Failed';
+            return { file, line, col, severity, msg };
         });
 }
 
-export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]> {
+export function lint(document: vscode.TextDocument): Promise<ICheckResult[]> {
     if (running) {
         tokenSource.cancel();
     }
@@ -49,34 +38,38 @@ export function swiftLint(document: vscode.TextDocument): Promise<ICheckResult[]
     return new Promise((resolve, reject) => {
         const child = spawn(command, args);
 
-        child.stdout.on('data', (data: any) => {
-            const items: ICheckResult[] = data
-                .toString('utf-8')
-                .split('\n')
-                .filter((text: string) => text !== '')
-                .map((text: string) => {
-                    const regex = /(.*):(\d+):(\d+): (\w+): (.+?): (.*)/;
-                    let match = regex.exec(text);
-
-                    if (!match) {
-                        // TODO: Handle
-                        return;
-                    }
-
-                    let [, file, lineStr, colStr,,, msg] = match;
-                    let line = +lineStr;
-                    let col = +colStr;
-                    const severity = 'warning';
-
-                    return { file, line, col, severity, msg };
-                });
-
-            return resolve(items);
-        });
-
+        child.stdout.on('data', (data: any) => resolve(extractErrors(data)));
         child.stdout.on('error', (err: Error) => reject(err));
 
         child.stdin.write(input);
         child.stdin.end();
     });
+}
+
+export async function runLint() {
+    const editor = vscode.window.activeTextEditor;
+
+    if (!editor) {
+        vscode.window.showInformationMessage('No editor is active, cannot find current package to lint');
+        return;
+    }
+
+    if (editor.document.languageId !== 'swift') {
+        vscode.window.showInformationMessage('File in the active editor is not a Swift file, cannot find current package to lint');
+        return;
+    }
+
+    outputChannel.clear();
+    diagnosticsStatusBarItem.show();
+    diagnosticsStatusBarItem.text = 'Linting...';
+
+    try {
+        const warnings: ICheckResult[] = await lint(editor.document);
+        diagnosticsStatusBarItem.hide();
+        handleDiagnosticErrors(editor.document, warnings);
+
+    } catch (err) {
+        vscode.window.showErrorMessage(`Error: ${err.message}`);
+        diagnosticsStatusBarItem.text = 'Linting Failed';
+    }
 }

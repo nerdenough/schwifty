@@ -4,6 +4,21 @@ import { spawn } from 'child_process';
 import { ICheckResult } from './util';
 import { diagnosticsStatusBarItem } from './swiftStatus';
 
+function extractErrors(data: Buffer): ICheckResult[] {
+    return data
+        .toString('utf-8')
+        .split('\n')
+        .map((line: string) => /(.*):(\d+):(\d+): (\w+): (.*)/.exec(line))
+        .filter((match: any) => match !== null)
+        .map((match: any) => {
+            let [, file, lineStr, colStr, severity, msg] = match;
+            let line = +lineStr;
+            let col = +colStr;
+
+            return { file, line, col, severity, msg };
+        });
+}
+
 export function check(fileName: string, swiftConfig: vscode.WorkspaceConfiguration): Promise<ICheckResult[]> {
     diagnosticsStatusBarItem.hide();
 
@@ -12,23 +27,7 @@ export function check(fileName: string, swiftConfig: vscode.WorkspaceConfigurati
         const args = [fileName];
         const child = spawn(command, args);
 
-        child.stderr.on('data', (data: any) => {
-            const items: ICheckResult[] = data
-                .toString('utf-8')
-                .split('\n')
-                .map((line: string) => /(.*):(\d+):(\d+): (\w+): (.*)/.exec(line))
-                .filter((match: Array<string>) => match !== null)
-                .map((match: Array<string>) => {
-                    let [,file, lineStr, colStr, severity, msg] = match;
-                    let line = +lineStr;
-                    let col = +colStr;
-
-                    return { file, line, col, severity, msg };
-                });
-
-            return resolve(items);
-        });
-
+        child.stderr.on('data', (data: any) => resolve(extractErrors(data)));
         child.on('error', (err: Error) => reject(err));
     });
 }

@@ -15,13 +15,9 @@ export function getConfig(key: string): any {
 }
 
 export function handleDiagnosticErrors(document: vscode.TextDocument, errors: ICheckResult[], diagnosticSeverity?: vscode.DiagnosticSeverity) {
-    if (diagnosticSeverity === undefined || diagnosticSeverity === vscode.DiagnosticSeverity.Error) {
-        errorDiagnosticCollection.clear();
-    }
 
-    if (diagnosticSeverity === undefined || diagnosticSeverity === vscode.DiagnosticSeverity.Warning) {
-        warningDiagnosticCollection.clear();
-    }
+    errorDiagnosticCollection.clear();
+    warningDiagnosticCollection.clear();
 
     let diagnosticMap: Map<string, Map<vscode.DiagnosticSeverity, vscode.Diagnostic[]>> = new Map();
     errors.forEach(error => {
@@ -56,7 +52,8 @@ export function handleDiagnosticErrors(document: vscode.TextDocument, errors: IC
     });
 
     diagnosticMap.forEach((diagMap: any, file) => {
-        const fileUri = file === '<nopath>' ? document.uri : vscode.Uri.parse(file);
+        // swiftlint returns <nopath> when using stdin
+        const fileUri = file === '<nopath>' ? document.uri : vscode.Uri.parse(`file://${file}`);
 
         if (diagnosticSeverity === undefined || diagnosticSeverity === vscode.DiagnosticSeverity.Error) {
             const newErrors = diagMap[vscode.DiagnosticSeverity.Error];

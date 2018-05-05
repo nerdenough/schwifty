@@ -16,7 +16,8 @@ function extractErrors(data: Buffer): ICheckResult[] {
             let col = +colStr;
 
             return { file, line, col, severity, msg };
-        });
+        })
+        .filter((result: ICheckResult) => result.severity !== 'note'); // not sure what to do with this for now
 }
 
 export function check(fileName: string, swiftConfig: vscode.WorkspaceConfiguration): Promise<ICheckResult[]> {

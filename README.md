@@ -11,6 +11,7 @@ These are the current features that Schwifty currently offers:
 
 - Code formatting
 - Style linting via SwiftLint
+- Error checking
 
 Features currently in progress:
 

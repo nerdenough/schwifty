@@ -15,7 +15,7 @@
     "activationEvents": [
         "onLanguage:swift"
     ],
-    "main": "./out/extension",
+    "main": "./out/swiftMain",
     "contributes": {
         "languages": [
             {
@@ -29,13 +29,39 @@
             "type": "object",
             "title": "Schwifty Configuration",
             "properties": {
-                "schwifty.sourceKittenPath": {
+                "swift.sourceKittenPath": {
                     "type": "string",
                     "default": "sourcekitten",
                     "description": "The path to the SourceKitten binary."
+                },
+                "swift.swiftLintPath": {
+                    "type": "string",
+                    "default": "swiftlint",
+                    "description": "The path to the SwiftLint binary."
+                },
+                "swift.autoFixOnSave": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Fix all auto-fixable problems save."
                 }
             }
-        }
+        },
+        "configurationDefaults": {
+            "[swift]": {
+                "editor.insertSpaces": true,
+                "editor.tabSize": 4,
+                "editor.formatOnSave": true
+            }
+        },
+        "commands": [{
+            "command": "swift.lint.file",
+            "title": "Swift: Lint Current File",
+            "description": "Run linter on the current file."
+        }, {
+            "command": "swift.lint.autoFix",
+            "title": "Swift: Fix all auto-fixable problems",
+            "description": "Fix all auto-fixable problems"
+        }]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

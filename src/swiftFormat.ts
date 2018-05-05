@@ -14,6 +14,6 @@ function format(fileName: string) {
 
 export class SwiftDocumentFormattingEditProvider implements DocumentFormattingEditProvider {
     provideDocumentFormattingEdits(document: TextDocument): any {
-        format(document.fileName)
+        format(document.fileName);
     }
 }

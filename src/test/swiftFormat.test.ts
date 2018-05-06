@@ -19,4 +19,13 @@ suite('swiftFormat', () => {
         emitter.emit('exit');
         promise.then(done);
     });
+
+    test('passes an error back on error', (done) => {
+        const promise = format('foo.swift');
+        emitter.emit('error', new Error('something bad happened'));
+        promise.catch((err: Error) => {
+            assert.equal(err.message, 'something bad happened');
+            done();
+        });
+    });
 });

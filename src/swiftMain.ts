@@ -1,9 +1,9 @@
 'use strict';
 import * as vscode from 'vscode';
 import { SwiftCompletionItemProvider } from './swiftComplete';
+import { autoFix } from './swiftFix';
 import { SwiftDocumentFormattingEditProvider } from './swiftFormat';
 import { runLint, lint } from './swiftLint';
-import { autoFix } from './swiftFix';
 import { SWIFT_MODE } from './swiftMode';
 import { handleDiagnosticErrors, ICheckResult } from './util';
 import { check } from './swiftCheck';
@@ -15,13 +15,16 @@ export function activate(ctx: vscode.ExtensionContext) {
     ctx.subscriptions.push(vscode.languages.registerCompletionItemProvider(SWIFT_MODE, new SwiftCompletionItemProvider(), '.'));
     ctx.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(SWIFT_MODE, new SwiftDocumentFormattingEditProvider()));
     ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.file', runLint));
-    ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.autoFix', ()  => {
+    ctx.subscriptions.push(vscode.commands.registerCommand('swift.lint.autoFix', () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             return;
         }
         const fileName = editor.document.fileName;
-        autoFix(fileName);
+        autoFix(fileName, true).catch(err => {
+            console.error(err);
+            vscode.window.showErrorMessage('Swift: Error auto-fixing files with SwiftLint', err.message);
+        });
     }));
 
     errorDiagnosticCollection = vscode.languages.createDiagnosticCollection('swift-error');
@@ -43,8 +46,12 @@ async function runBuilds(document: vscode.TextDocument, swiftConfig: vscode.Work
     warningDiagnosticCollection.clear();
 
     const fileName = document.fileName;
-    await autoFix(fileName);
+
+    if (swiftConfig.get('swift.autoFixOnSave')) {
+        await autoFix(fileName, true);
+    }
+
     const lintResults: ICheckResult[] = await lint(document);
-    const checkResults: ICheckResult[] = await check(document.fileName, swiftConfig);
+    const checkResults: ICheckResult[] = await check(fileName, swiftConfig);
     handleDiagnosticErrors(document, [...lintResults, ...checkResults]);
 }

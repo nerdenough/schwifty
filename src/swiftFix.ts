@@ -1,16 +1,18 @@
 'use strict';
-import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import { getConfig } from './util';
 
-export function autoFix(fileName: string) {
+export function autoFix(fileName: string, format?: boolean) {
+    const command = getConfig('swiftLintPath');
+    const args = ['autocorrect', '--path', fileName];
+
+    if (format) {
+        args.push('--format');
+    }
+
     return new Promise((resolve, reject) => {
-        spawn(getConfig('swiftLintPath'), ['autocorrect', '--path', fileName])
+        spawn(command, args)
             .on('exit', (data: any) => resolve())
-            .on('error', (err: any) => {
-                console.error(err);
-                vscode.window.showErrorMessage('Swift: Error auto-fixing files with SwiftLint', err.message);
-                reject(err);
-            });
+            .on('error', (err: Error) => reject(err));
     });
 }

@@ -3,9 +3,12 @@ import { DocumentFormattingEditProvider, TextDocument, window } from 'vscode';
 import { spawn } from 'child_process';
 import { getConfig } from './util';
 
-export function format(fileName: string) {
+export function format(fileName: string, format?: boolean) {
+    const command = getConfig('sourceKittenPath');
+    const args = ['format', '--file', fileName];
+
     return new Promise((resolve, reject) => {
-        spawn(getConfig('swiftLintPath'), ['autocorrect', '--format', '--path', fileName])
+        spawn(command, args)
             .on('exit', () => resolve())
             .on('error', (err: Error) => reject(err));
     });

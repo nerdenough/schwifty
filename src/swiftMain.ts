@@ -42,9 +42,6 @@ async function runBuilds(document: vscode.TextDocument, swiftConfig: vscode.Work
         return;
     }
 
-    errorDiagnosticCollection.clear();
-    warningDiagnosticCollection.clear();
-
     const fileName = document.fileName;
 
     if (swiftConfig.get('swift.autoFixOnSave')) {

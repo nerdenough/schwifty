@@ -28,6 +28,7 @@ export function check(fileName: string, swiftConfig: vscode.WorkspaceConfigurati
         const args = ['-typecheck', fileName];
         const child = spawn(command, args);
 
+        child.on('exit', () => resolve([]));
         child.stderr.on('data', (data: any) => resolve(extractErrors(data)));
         child.on('error', (err: Error) => reject(err));
     });

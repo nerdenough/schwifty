@@ -25,7 +25,7 @@ export function check(fileName: string, swiftConfig: vscode.WorkspaceConfigurati
 
     return new Promise((resolve, reject) => {
         const command = 'swiftc';
-        const args = [fileName];
+        const args = ['-typecheck', fileName];
         const child = spawn(command, args);
 
         child.stderr.on('data', (data: any) => resolve(extractErrors(data)));

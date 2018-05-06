@@ -8,9 +8,11 @@ export function format(fileName: string, format?: boolean) {
     const args = ['format', '--file', fileName];
 
     return new Promise((resolve, reject) => {
-        spawn(command, args)
+        const child = spawn(command, args)
             .on('exit', () => resolve())
             .on('error', (err: Error) => reject(err));
+
+        child.stderr.on('data', data => reject(data));
     });
 }
 

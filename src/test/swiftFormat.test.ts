@@ -16,8 +16,7 @@ const formattedCode = `func sum(a: Int, b: Int) -> Int {
 suite('Format Tests', () => {
     test('formatting', async () => {
         const fileName = createSwiftFile(unformattedCode);
-        await format(fileName)
-            .catch(err => console.error(err));
+        await format(fileName);
         const data = readSwiftFile(fileName);
         assert.equal(data, formattedCode);
     });

@@ -1,5 +1,7 @@
 # Schwifty
 
+![](https://travis-ci.com/nerdenough/schwifty.svg?branch=master)
+
 ![](https://i.goodenough.nz/schwifty.gif)
 
 Schwifty is a Swift extension for VS Code that enables autocompletion and formatting through the

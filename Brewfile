@@ -1,2 +1,0 @@
-brew 'sourcekitten'
-brew 'swiftlint'

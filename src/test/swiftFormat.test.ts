@@ -1,23 +1,22 @@
 import * as assert from 'assert';
-import { format } from '../swiftFormat';
-import { createSwiftFile, readSwiftFile } from './testUtil';
+import * as proxyquire from 'proxyquire';
+import { EventEmitter } from 'events';
 
-// Our input file
-const unformattedCode = `func sum(a: Int, b: Int) -> Int {
-return a + b
-}`;
+const emitter = new EventEmitter();
+const { format } = proxyquire('../swiftFormat', {
+    child_process: {
+        spawn: (command: string, args: string[]) => {
+            assert.equal(command, 'sourcekitten');
+            assert.deepEqual(args, ['format', '--file', 'foo.swift']);
+            return emitter;
+        }
+    }
+});
 
-// This is the desired output
-const formattedCode = `func sum(a: Int, b: Int) -> Int {
-    return a + b
-}
-`;
-
-suite('Format Tests', () => {
-    test('formatting', async () => {
-        const fileName = createSwiftFile(unformattedCode);
-        await format(fileName);
-        const data = readSwiftFile(fileName);
-        assert.equal(data, formattedCode);
+suite('swiftFormat', () => {
+    test('spawns sourcekitten with the correct arguments', (done) => {
+        const promise = format('foo.swift');
+        emitter.emit('exit');
+        promise.then(done);
     });
 });

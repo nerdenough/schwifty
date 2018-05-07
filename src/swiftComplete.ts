@@ -5,9 +5,13 @@ import * as cp from 'child_process';
 import { getConfig } from './util';
 
 interface SwiftCodeSuggestion {
-    class: string;
+    context: string;
+    descriptionKey: string;
+    kind: string;
     name: string;
-    type: string;
+    numBytesToErase: number;
+    sourceText: string;
+    typeName: string;
 }
 
 export function complete(fileName: string, position: vscode.Position): Promise<string> {
@@ -32,10 +36,22 @@ export function complete(fileName: string, position: vscode.Position): Promise<s
     });
 }
 
-function typeNameToVSCodeKind(typeName: string): vscode.CompletionItemKind {
-    switch (typeName) {
-        case 'Module':
+function mapToVSCodeKind(kind: string): vscode.CompletionItemKind {
+    switch (kind) {
+        case 'class':
+            return vscode.CompletionItemKind.Class;
+        case 'color':
+            return vscode.CompletionItemKind.Color;
+        case 'enum':
+            return vscode.CompletionItemKind.Enum;
+        case 'func':
+            return vscode.CompletionItemKind.Function;
+        case 'keyword':
+            return vscode.CompletionItemKind.Keyword;
+        case 'module':
             return vscode.CompletionItemKind.Module;
+        case 'struct':
+            return vscode.CompletionItemKind.Struct;
         default:
             return vscode.CompletionItemKind.Property;
     }
@@ -50,13 +66,18 @@ export class SwiftCompletionItemProvider implements vscode.CompletionItemProvide
                 return;
             }
 
-            const data = JSON.parse(completions.toString());
-            const suggestions = data.map(item => {
-                const name = item.name;
-                const type = typeNameToVSCodeKind(item.typeName);
+            const results: SwiftCodeSuggestion[] = JSON.parse(completions.toString());
 
-                return { type };
+            const suggestions: vscode.CompletionItem[] = results.map((suggest: any) => {
+                const item = new vscode.CompletionItem(suggest.name);
+                item.kind = mapToVSCodeKind(suggest.kind.split('.').pop());
+                item.detail = suggest.descriptionKey;
+                item.insertText = suggest.sourceText;
+                item.sortText = 'a';
+                return item;
             });
+
+            resolve(suggestions);
         });
     }
 }
